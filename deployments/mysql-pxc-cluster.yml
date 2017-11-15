@@ -1,0 +1,70 @@
+---
+- hosts: pxc-nodes
+  gather_facts: true
+  become: yes
+  vars:
+    - node_start: 0
+    - n: "{% for thishost in play_hosts %}{% if inventory_hostname==thishost %}{{ node_start + loop.index }}{% endif %}{% endfor %}"
+  pre_tasks:
+  - name: Ensure resources path exists
+    file:
+      path: /u/apps/mysql-cluster
+      state: directory
+      mode: 0755
+
+#  - name: Ensure data path exists
+#    file:
+#      path: /u/data/mysql-cluster
+#      state: directory
+#      mode: 0755
+
+  - name: deploy App resources
+    synchronize:
+      src: resources/pxc-conf
+      dest: /u/apps/mysql-cluster/
+
+  - name: Ensure correct permissions
+    file: 
+      path: /u/apps/mysql-cluster/
+      owner: root
+      group: root
+      mode: 0755
+      recurse: yes
+
+  - name: Ensure Firewall ports are open
+    firewalld:
+      port: "{{ item.port }}"
+      permanent: true
+      state: enabled
+    with_items:
+      - { port: '4567/tcp' }
+      - { port: '4568/tcp' }
+      - { port: '4444/tcp' }
+      - { port: '4444/udp' }
+      - { port: '33060/tcp' }
+      - { port: '9200/tcp' }
+
+  tasks:
+  - name: deploy pxc-node
+    docker_container:
+      name: "pxc{{ n }}"
+      image: m3hran/mysql-pxc-cluster
+      pull: true
+      restart_policy: always
+      state: started
+      recreate: yes
+      ports:
+      - 33060:3306
+      - 4567:4567
+      - 4568:4568
+      - 4444:4444
+      - 9200:9200
+      env:
+        CLUSTER_ADDRESSES: "{{ groups['pxc-nodes'] | map('extract', hostvars, ['ansible_em1', 'ipv4', 'address']) | join(',') }}"
+        NODE_NAME: "pxc{{ n }}" 
+        NODE_ADDRESS: "{{ ansible_em1.ipv4.address }}"
+      volumes:
+      - /u/apps/mysql-cluster/pxc-conf/pxc_init.sh:/etc/my_init.d/pxc_init.sh
+      - /u/data/mysql-cluster/pxc{{ n }}:/var/lib/mysql
+      - /u/apps/mysql-cluster/pxc-conf/pxc/my.cnf.template:/etc/mysql/my.cnf.template
+      network_mode: bridge

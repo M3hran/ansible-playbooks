@@ -1,0 +1,21 @@
+---
+- hosts: all
+  become: yes  
+  vars_prompt:
+     user: "Please enter username"
+     key_path: "Please enter path to user's authorized_keys"   
+
+  tasks:
+   - name: Ensure user's .ssh folder exists
+     file: 
+       path: "/home/{{ user }}/.ssh"
+       state: directory
+       owner: "{{ user }}"
+       mode: 0700
+
+   - name: Ensure user's authorized key exits
+     copy:
+       src: "{{ key_path }}"
+       dest: "/home/{{ user }}/.ssh/authorized_keys"
+       owner: "{{ user }}"
+       mode: 0600

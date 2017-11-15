@@ -1,0 +1,27 @@
+---
+- hosts: all
+  become: yes
+  vars_prompt:
+     user: "Please enter username"
+#     password: "Please enter password" 
+#     uid: "Please enter a UID" 
+#     membership: "Please enter group to be a member of"
+
+  tasks:
+#   - name: Ensure group exits
+#     group:
+#       name: "{{ user }}"
+#       gid: "{{ uid }}"
+#       state: present
+       
+   - name: Ensure user exists
+     user: 
+       name: "{{ user }}" 
+#       password: "{{ password }}" 
+#       uid: "{{ uid }}" 
+       groups: "{{ service_group }}" 
+       state: present
+       createhome: yes
+       generate_ssh_key: yes
+       ssh_key_bits: 2048
+       ssh_key_file: .ssh/id_rsa

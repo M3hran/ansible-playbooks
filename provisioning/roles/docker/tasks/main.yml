@@ -1,0 +1,35 @@
+#- name: Get DOCKER-ENGINE installer.
+#  get_url:
+#    url: https://get.docker.com
+#    dest: /tmp/docker_install.sh
+#    mode: 755
+- name: Copy DOCKER-ENGINER installer to host.
+  template: 
+    src=docker_install.sh
+    dest=/tmp/docker_install.sh
+    owner=root
+    group=root
+    mode=0755
+
+- name: Execute DOCKER-ENGINE installer.
+  shell: /tmp/docker_install.sh >> /var/log/docker_install.log
+  notify:
+    - enable_docker
+    - start_docker
+  args:
+    creates: /usr/lib/systemd/system/docker.service
+
+- name: Execute DOCKER-COMPOSE installer.
+  shell: curl -L https://github.com/docker/compose/releases/download/1.15.0/docker-compose-`uname -s`-`uname -m` > /usr/sbin/docker-compose
+  args:
+    creates: /usr/local/bin/docker-compose
+
+- name: Ensure execute bit is enabled on DOCKER-COMPOSE.
+  file:
+    path: /usr/local/bin/docker-compose
+    mode: 0755
+
+- name: Ensure docker-py is installed
+  pip: 
+    name: docker-py
+    state: present

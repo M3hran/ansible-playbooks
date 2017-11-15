@@ -1,0 +1,94 @@
+---
+- hosts: ha-lb
+  become: yes
+
+  pre_tasks:
+  - name: Ensure resources path exists
+    file:
+      path: /u/apps/halb/
+      state: directory
+      mode: 0755
+
+  - name: deploy App resources
+    synchronize:
+      src: resources/halb/
+      dest: /u/apps/halb
+
+  - name: Ensure path permissions are correct
+    file:
+      path: /u/apps/halb/
+      state: directory
+      mode: 0755
+      owner: root
+      group: root
+      recurse: true
+
+  - name: Ensure Firewall ports are open
+    firewalld:
+      port: "{{ item.port }}"
+      permanent: true
+      state: enabled
+    with_items:
+      - { port: '33070/tcp' }
+      - { port: '33060/tcp' }
+      - { port: '80/tcp' }
+      - { port: '3306/tcp' }
+      - { port: '3307/tcp' }
+
+
+
+  tasks:
+  - name: deploy haproxy
+    docker_container: 
+      name: haproxy
+      image: haproxy
+      pull: true
+      restart_policy: always
+      state: started
+      ports:
+      - 3306:3306
+      - 3307:3307
+      - 33060:33060
+      - 33070:33070
+      - 80:80
+      env: 
+          TZ=America/New_York
+      volumes: 
+      - /u/apps/halb/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      network_mode: bridge 
+
+
+
+
+#  - name: deploy keepalived
+#    when: inventory_hostname == "node1"
+#    docker_container: 
+#      name: keepalived
+#      image: alterway/keepalived:1.2
+#      pull: true
+#      restart_policy: always
+#      state: started
+#      env:
+#        TZ=America/New_York
+#      env_file: /u/apps/halb/keepalived/keepalived1.env
+#      volumes:
+#     - /var/run/docker.sock:/var/run/docker.sock
+#      - /root/.docker:/root/.docker
+#      network_mode: host 
+     
+
+#  - name: deploy keepalived
+#    when: inventory_hostname == "node2"
+#    docker_container: 
+#      name: keepalived
+#      image: alterway/keepalived:1.2
+#      pull: true
+#      restart_policy: always
+#      state: started
+#      env:
+#        TZ=America/New_York
+#      env_file: /u/apps/halb/keepalived/keepalived2.env
+#      volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
+#      - /root/.docker:/root/.docker
+#      network_mode: host

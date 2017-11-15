@@ -1,0 +1,53 @@
+- name: setting sysctl.conf
+  template: 
+    src=sysctl_conf.j2 
+    dest=/etc/sysctl.conf
+    owner=root
+    group=root
+    mode=0644
+    
+- name: setting limits.conf 
+  template: 
+    src=limits_conf.j2 
+    dest=/etc/security/limits.conf
+    owner=root
+    group=root
+    mode=0644
+
+- name: setting system profile
+  template:
+    src=sysadmin_profile.j2
+    dest=/etc/profile.d/sysadmin_profile.sh
+    owner=root
+    group=root
+    mode=0644
+
+- name: disable selinux
+  selinux:
+    policy=targeted
+    state=disabled
+
+- name: add EPEL repository
+  yum:
+    name: epel-release
+    state: present
+
+- name: install packages
+  yum:
+    name={{ item }}
+    state=present
+  with_items:
+    - htop
+    - iftop
+    - iotop
+    - git
+    - ncdu
+    - vim
+    - nano
+    - unzip
+    - lsof
+    - python
+    - python-pip
+    - wget
+    - ntp
+    - curl 

@@ -1,0 +1,6 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+   - name: List Users
+     shell: cat /etc/passwd

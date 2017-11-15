@@ -1,0 +1,18 @@
+---
+# mygroup accounts
+
+service_group: mygroup
+
+service_accounts:
+  - name: user1
+    comment: "user 1"
+    uid: 2020
+    ssh_key: ""
+
+  - name: user2
+    comment: "user 2"
+    ssh_key: ""
+
+  - name: user3
+    comment: "user 3"
+    ssh_key: ""

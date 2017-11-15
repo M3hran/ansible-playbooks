@@ -1,0 +1,7 @@
+---
+- name: installing Zabbix agent.
+  script: scripts/zabbix_install.sh
+  args: 
+    creates: /etc/zabbix/zabbix-agentd.conf
+  notify:
+    - restart zabbix-agent

@@ -1,0 +1,24 @@
+---
+- hosts: all
+  become: true
+
+
+  tasks:
+  
+#  - name: copy hsflowd.conf
+#    copy:
+#      src: /home/taherim/hsflowd-centos7-2.0.11-1.x86_64.rpm
+#      dest: /home/taherim/hsflowd-centos7-2.0.11-1.x86_64.rpm
+ 
+#  - name: yum install hsflowd
+#    yum:
+#      name: /home/taherim/hsflowd-centos7-2.0.11-1.x86_64.rpm
+#      state: present
+
+  - name: copy hsflowd.conf
+    copy: 
+      src: /etc/hsflowd.conf
+      dest: /etc/hsflowd.conf
+      owner: root
+      group: root
+      mode: 0644

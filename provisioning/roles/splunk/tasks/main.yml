@@ -1,0 +1,12 @@
+- name: Get SI SPLUNK Agent Installer.
+  get_url:
+    url: http://splunk.si.edu/download/nix_install.sh
+    dest: /tmp/nix_install.sh
+    mode: 755
+  
+- name: Execute SI SPLUNK Agent Installer.
+  shell: /tmp/nix_install.sh >> /var/log/nix_install.log
+  args:
+    creates: /opt/splunkforwarder/bin/splunk
+  notify:
+    - restart splunk

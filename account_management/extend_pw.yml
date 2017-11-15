@@ -1,0 +1,8 @@
+---
+- hosts: eol
+  become: yes
+  
+  tasks:
+  - name: Extend user's password expirations 
+    shell: chage -I 180 -M 90 -d$(date +%F) "{{ item.name }}"
+    with_items: "{{ service_accounts }}"   

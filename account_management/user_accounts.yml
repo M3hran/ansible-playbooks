@@ -1,0 +1,40 @@
+---
+- hosts: all
+  become: yes
+  
+  tasks:
+  - name: Ensure we have a service group
+    group:
+      name: "{{ service_group }}"
+      state: present
+
+  - name: Ensure service group has passwordless sudo
+    lineinfile:
+      dest: /etc/sudoers
+      state: present
+      regexp: '^%{{service_group}}\s'
+      line: '%{{service_group}} ALL=(ALL) NOPASSWD: ALL'
+#      validate: 'visudo -cf %s' 
+
+  - name: Ensure system service accounts exists
+    user:
+      name: "{{ item.name }}"
+      groups: "{{ service_group }}"
+      append: yes
+      state: present
+      createhome: yes
+    with_items: "{{ service_accounts }}"
+
+  - name: Ensure authorized keys are set
+    authorized_key:
+      user: "{{ item.name }}"
+      state: present
+      key: "{{ item.ssh_key }}"
+    with_items: "{{ service_accounts }}"
+
+  - name: Ensure Users are members of Docker group
+    user:
+      name: "{{ item.name }}"
+      groups: docker
+      append: yes
+    with_items: "{{ service_accounts }}"
