@@ -5,6 +5,6 @@
 
   tasks:
     - name: certbot | get cert expiration date
-      shell: "date --date=\"$(openssl x509 -in /home/ubuntu/nginx/letsencrypt/live/{{certbot_domain}}/cert.pem -noout -enddate | cut -d= -f 2)\" --iso-8601"
+      shell: "openssl x509 -in /home/ubuntu/nginx/letsencrypt/live/{{certbot_domain}}/cert.pem -noout -enddate | cut -d= -f 2"
       register: certbot_expiration_date
       changed_when: False
