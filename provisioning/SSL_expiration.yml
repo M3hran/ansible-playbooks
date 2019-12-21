@@ -1,4 +1,4 @@
-- name: find cerfication files & expiration dates
+- name: find ssl expiration dates
   hosts: all
   gather_facts: false
 
@@ -7,4 +7,3 @@
       shell: "date --date=\"$(openssl x509 -in /home/ubuntu/nginx/letsencrypt/live/{{certbot_domain}}/cert.pem -noout -enddate | cut -d= -f 2)\" --iso-8601"
       register: certbot_expiration_date
       changed_when: False
-      when: certbot_certificate.stat.exists == True
