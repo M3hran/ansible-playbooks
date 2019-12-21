@@ -3,39 +3,8 @@
   gather_facts: false
 
   tasks:
-    - name: Find cert files under /etc/pki/tls/certs
-      find:
-        paths: /home/ubuntu/nginx/letsencrypt/live
-        file_type: file
-        patterns: "cert.pem"
-        recurse: yes
-        excludes: "localhost.crt"
-      register: find_result
-
-    - name: Check validity
-      openssl_certificate_info:
-        path: "{{ item.path }}"
-        valid_at:
-          point_1: "+1w"
-          point_2: "+10w"
-      register: cert_info
-      loop: "{{ find_result.files }}"
-
-    - name: Filter out valid certs
-      set_fact:
-        outdated_certs: "{{ cert_info | json_query('results[? !(valid_at.point_1) || !(valid_at.point_2)]') }}"
-
-    - block:
-        - name: Check that all certificates are valid
-          assert:
-            that:
-              - outdated_certs | count == 0
-
-      rescue:
-        - name: Show info about outdated certs
-          debug:
-            msg: >-
-              {{ { "Outdated Certs": outdated_certs | json_query("[].item.path") } }}
-
-        - fail:
-            msg: "Outdated certs found. See list above"
+    - name: certbot | get cert expiration date
+      shell: "date --date=\"$(openssl x509 -in /etc/letsencrypt/live/{{certbot_domain}}/cert.pem -noout -enddate | cut -d= -f 2)\" --iso-8601"
+      register: certbot_expiration_date
+      changed_when: False
+      when: certbot_certificate.stat.exists == True
