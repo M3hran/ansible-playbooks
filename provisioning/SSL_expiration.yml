@@ -1,5 +1,6 @@
 - name: find ssl expiration dates
   hosts: all
+  become: yes
   gather_facts: false
 
   tasks:
